@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Detalle de Venta</title>
+</head>
+<body class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Venta #<%= venta.id_venta %></h1>
+            <p class="text-muted mb-1">Total: $<%= Number(venta.total).toFixed(2) %></p>
+            <p class="text-muted">Fecha: <%= new Date(venta.fecha).toLocaleString('es-ES') %></p>
+        </div>
+        <div class="text-end">
+            <a href="/ventas" class="btn btn-outline-secondary">Volver a ventas</a>
+            <form action="/ventas/delete/<%= venta.id_venta %>" method="POST" class="d-inline-block ms-2">
+                <button type="submit" class="btn btn-outline-danger">Eliminar venta</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card p-4">
+                <h3 class="mb-3">Detalles de la venta</h3>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio</th>
+                                <th>Subtotal</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (detalles.length === 0) { %>
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">No hay detalles para esta venta.</td>
+                                </tr>
+                            <% } %>
+                            <% detalles.forEach(detalle => { %>
+                                <tr>
+                                    <td><%= detalle.producto_nombre %></td>
+                                    <td>
+                                        <form action="/detalle/<%= detalle.id_detalle %>/update" method="POST" class="d-flex gap-2 align-items-center">
+                                            <input type="number" name="cantidad" value="<%= detalle.cantidad %>" min="1" class="form-control form-control-sm" style="width: 90px;">
+                                            <button type="submit" class="btn btn-sm btn-primary">OK</button>
+                                        </form>
+                                    </td>
+                                    <td>$<%= Number(detalle.precio).toFixed(2) %></td>
+                                    <td>$<%= Number(detalle.precio * detalle.cantidad).toFixed(2) %></td>
+                                    <td>
+                                        <form action="/detalle/<%= detalle.id_detalle %>/delete" method="POST">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card p-4">
+                <h3 class="mb-3">Agregar detalle</h3>
+                <form action="/ventas/<%= venta.id_venta %>/add-detalle" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Producto</label>
+                        <select name="id_producto" class="form-select" required>
+                            <option value="">Selecciona un producto</option>
+                            <% productos.forEach(p => { %>
+                                <option value="<%= p.id_producto %>"><%= p.nombre %> - $<%= Number(p.precio_unitario).toFixed(2) %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cantidad</label>
+                        <input type="number" name="cantidad" class="form-control" value="1" min="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Agregar detalle</button>
+                </form>
+            </div>
+            <div class="card p-4 mt-4">
+                <h3 class="mb-3">Actualizar fecha</h3>
+                <form action="/ventas/<%= venta.id_venta %>/update" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de la venta</label>
+                        <input type="datetime-local" name="fecha" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary w-100">Actualizar fecha</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
