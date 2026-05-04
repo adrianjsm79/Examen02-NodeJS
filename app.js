@@ -22,17 +22,32 @@ app.get('/', (req, res) => {
 
 
 app.get('/productos', async (req, res) => {
-  const resQuery = await pool.query(`
+  const productosQuery = await pool.query(`
     SELECT p.*, c.nombre as categoria 
     FROM productos p 
     JOIN categorias c ON p.id_categoria = c.id_categoria
   `);
-  res.render('productos', { productos: resQuery.rows });
+  const categoriasQuery = await pool.query('SELECT id_categoria, nombre FROM categorias ORDER BY nombre');
+
+  res.render('productos', {
+    productos: productosQuery.rows,
+    categorias: categoriasQuery.rows
+  });
 });
 
 app.post('/productos/create', upload.single('imagen'), async (req, res) => {
   const { nombre, precio_unitario, id_categoria } = req.body;
   const imagen = req.file ? req.file.filename : null;
+
+  const categoriaExists = await pool.query(
+    'SELECT 1 FROM categorias WHERE id_categoria = $1',
+    [id_categoria]
+  );
+
+  if (categoriaExists.rowCount === 0) {
+    return res.status(400).send('Categoría inválida. Por favor selecciona una categoría válida.');
+  }
+
   await pool.query(
     'INSERT INTO productos (nombre, precio_unitario, imagen, id_categoria) VALUES ($1, $2, $3, $4)',
     [nombre, precio_unitario, imagen, id_categoria]
@@ -40,7 +55,20 @@ app.post('/productos/create', upload.single('imagen'), async (req, res) => {
   res.redirect('/productos');
 });
 
+app.post('/categorias/create', async (req, res) => {
+  const { nombre } = req.body;
 
+  if (!nombre || nombre.trim() === '') {
+    return res.status(400).send('El nombre de la categoría es requerido.');
+  }
+
+  await pool.query(
+    'INSERT INTO categorias (nombre) VALUES ($1)',
+    [nombre.trim()]
+  );
+
+  res.redirect('/productos');
+});
 
 app.post('/ventas/nueva', async (req, res) => {
   const { id_producto, cantidad } = req.body;
