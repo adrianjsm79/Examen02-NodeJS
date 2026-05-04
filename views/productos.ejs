@@ -2,43 +2,171 @@
 <html lang="es">
 <head>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>CRUD Ventas</title>
+    <title>CRUD de Productos</title>
+    <style>
+        body {
+            background: #f4f7fb;
+            color: #343a40;
+        }
+        .page-header {
+            background: #4f46e5;
+            color: #ffffff;
+            border-radius: 1.25rem;
+            padding: 2rem 1.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 14px 40px rgba(79, 70, 229, 0.15);
+        }
+        .page-header h1 {
+            font-size: 2.5rem;
+            line-height: 1.1;
+        }
+        .page-header p {
+            color: #e2e8f0;
+        }
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+        }
+        .form-label {
+            font-weight: 600;
+        }
+        .table thead {
+            background: #eef2ff;
+        }
+        .table tbody tr:hover {
+            background: #eff6ff;
+        }
+        .category-list li {
+            border: none;
+            border-radius: 0.8rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .img-preview {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            border: 1px solid #dee2e6;
+        }
+    </style>
 </head>
-<body class="container mt-5">
-    <h2>Gestión de Productos</h2>
-    
-    <form action="/productos/create" method="POST" enctype="multipart/form-data" class="mb-4 p-3 border">
-        <input type="text" name="nombre" placeholder="Nombre Producto" class="form-control mb-2" required>
-        <input type="number" step="0.01" name="precio_unitario" placeholder="Precio" class="form-control mb-2" required>
-        <select name="id_categoria" class="form-control mb-2">
-            <option value="1">Electrónica</option> </select>
-        <input type="file" name="imagen" class="form-control mb-2">
-        <button type="submit" class="btn btn-primary">Guardar Producto</button>
-    </form>
+<body class="container py-5">
+    <div class="page-header text-center">
+        <p class="text-uppercase mb-2 opacity-75">Panel administrativo</p>
+        <h1 class="fw-bold mb-3">Gestión de Productos y Categorías</h1>
+        <p class="lead mb-0">Administra productos y categorías con una interfaz clara y moderna.</p>
+    </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Imagen</th>
-                <th>Nombre</th>
-                <th>Categoría</th>
-                <th>Precio</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% productos.forEach(p => { %>
-            <tr>
-                <td><img src="/uploads/<%= p.imagen %>" width="50"></td>
-                <td><%= p.nombre %></td>
-                <td><%= p.categoria %></td>
-                <td>$<%= p.precio_unitario %></td>
-                <td>
-                    <a href="/productos/delete/<%= p.id_producto %>" class="btn btn-danger btn-sm">Eliminar</a>
-                </td>
-            </tr>
-            <% }) %>
-        </tbody>
-    </table>
+    <div class="row g-4">
+        <div class="col-xl-5">
+            <div class="card p-4">
+                <h3 class="mb-3">Crear producto</h3>
+                <form action="/productos/create" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre del producto</label>
+                        <input type="text" name="nombre" placeholder="Nombre Producto" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Precio unitario</label>
+                        <input type="number" step="0.01" name="precio_unitario" placeholder="Precio" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Categoría</label>
+                        <select name="id_categoria" class="form-select" required>
+                            <% if (categorias.length > 0) { %>
+                                <% categorias.forEach(c => { %>
+                                    <option value="<%= c.id_categoria %>"><%= c.nombre %></option>
+                                <% }) %>
+                            <% } else { %>
+                                <option value="" disabled selected>No hay categorías disponibles</option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Imagen</label>
+                        <input type="file" name="imagen" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" <%= categorias.length === 0 ? 'disabled' : '' %>>Guardar producto</button>
+                    <% if (categorias.length === 0) { %>
+                        <p class="text-danger mt-3">Agrega primero una categoría para poder crear productos.</p>
+                    <% } %>
+                </form>
+            </div>
+
+            <div class="card p-4 mt-4">
+                <h3 class="mb-3">Agregar categoría</h3>
+                <form action="/categorias/create" method="POST" class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Nombre de la categoría</label>
+                        <input type="text" name="nombre" placeholder="Ej. Electrónica" class="form-control" required>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-outline-secondary w-100">Guardar categoría</button>
+                    </div>
+                </form>
+            </div>
+
+            <% if (categorias.length > 0) { %>
+                <div class="card p-4 mt-4">
+                    <h3 class="mb-3">Categorías existentes</h3>
+                    <ul class="list-group category-list">
+                        <% categorias.forEach(c => { %>
+                            <li class="list-group-item"><%= c.nombre %></li>
+                        <% }) %>
+                    </ul>
+                </div>
+            <% } %>
+        </div>
+
+        <div class="col-xl-7">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h3 class="mb-1">Productos registrados</h3>
+                        <p class="text-muted mb-0">Revisa los productos actuales y elimina los que ya no necesites.</p>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Imagen</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Precio</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (productos.length === 0) { %>
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">No hay productos registrados.</td>
+                                </tr>
+                            <% } %>
+                            <% productos.forEach(p => { %>
+                                <tr>
+                                    <td>
+                                        <% if (p.imagen) { %>
+                                            <img src="/uploads/<%= p.imagen %>" class="img-preview" alt="<%= p.nombre %>">
+                                        <% } else { %>
+                                            <span class="text-muted">Sin imagen</span>
+                                        <% } %>
+                                    </td>
+                                    <td><%= p.nombre %></td>
+                                    <td><%= p.categoria %></td>
+                                    <td>$<%= p.precio_unitario %></td>
+                                    <td>
+                                        <a href="/productos/delete/<%= p.id_producto %>" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
